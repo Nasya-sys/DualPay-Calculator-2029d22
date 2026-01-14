@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DualPay Calculator</title>
+    <style>
+        :root {
+            --primary-blue: #003399; /* EU Blue */
+            --primary-yellow: #FFCC00; /* EU Yellow */
+            --bg-color: #f4f7f6;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { color: var(--primary-blue); text-align: center; margin-bottom: 1.5rem; }
+        .input-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #333; }
+        input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        input:focus { border-color: var(--primary-blue); outline: none; }
+        .result-area { background: #eef2ff; padding: 1rem; border-radius: 8px; margin-top: 1.5rem; border-left: 5px solid var(--primary-blue); }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .highlight { font-weight: bold; color: var(--primary-blue); }
+        .footer { text-align: center; font-size: 0.8rem; margin-top: 1rem; color: #777; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>DualPay Calculator</h2>
+    
+    <div class="input-group">
+        <label>Дължима сума (в BGN):</label>
+        <input type="number" id="totalAmountBGN" placeholder="0.00" oninput="calculate()">
+    </div>
+
+    <hr>
+
+    <div class="input-group">
+        <label>Платено в Лева (BGN):</label>
+        <input type="number" id="paidBGN" placeholder="0.00" oninput="calculate()">
+    </div>
+
+    <div class="input-group">
+        <label>Платено в Евро (EUR):</label>
+        <input type="number" id="paidEUR" placeholder="0.00" oninput="calculate()">
+    </div>
+
+    <div class="result-area">
+        <div class="result-row">
+            <span>Общо платено (в BGN):</span>
+            <span id="totalPaidBGN" class="highlight">0.00</span>
+        </div>
+        <div class="result-row">
+            <span>Ресто (в Евро):</span>
+            <span id="changeEUR" style="color: green; font-weight: bold;">0.00 €</span>
+        </div>
+        <div class="result-row" style="font-size: 0.9rem; opacity: 0.8;">
+            <span>Ресто (в Лева):</span>
+            <span id="changeBGN">0.00 лв.</span>
+        </div>
+    </div>
+
+    <p class="footer">Курс: 1 EUR = 1.95583 BGN</p>
+</div>
+
+<script>
+    const RATE = 1.95583;
+
+    function calculate() {
+        const totalDue = parseFloat(document.getElementById('totalAmountBGN').value) || 0;
+        const paidBGN = parseFloat(document.getElementById('paidBGN').value) || 0;
+        const paidEUR = parseFloat(document.getElementById('paidEUR').value) || 0;
+
+        // Превръщаме всичко платено в лева за базова калкулация
+        const totalPaidInBGN = paidBGN + (paidEUR * RATE);
+        document.getElementById('totalPaidBGN').innerText = totalPaidInBGN.toFixed(2) + " лв.";
+
+        const changeInBGN = totalPaidInBGN - totalDue;
+
+        if (changeInBGN > 0) {
+            const changeInEUR = changeInBGN / RATE;
+            document.getElementById('changeEUR').innerText = changeInEUR.toFixed(2) + " €";
+            document.getElementById('changeBGN').innerText = changeInBGN.toFixed(2) + " лв.";
+        } else {
+            document.getElementById('changeEUR').innerText = "0.00 €";
+            document.getElementById('changeBGN').innerText = "0.00 лв.";
+        }
+    }
+</script>
+
+</body>
+</html>
