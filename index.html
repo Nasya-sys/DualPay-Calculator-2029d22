@@ -21,7 +21,7 @@
             position: relative;
         }
 
-        /* ПЕРФЕКТНО ПОДРЕДЕНИ ДИАГОНАЛИ */
+        /* ПОДРЕДЕН ДИАГОНАЛЕН ФОН */
         #bg-symbols {
             position: fixed;
             top: -25%; left: -25%; 
@@ -29,28 +29,33 @@
             z-index: 0;
             pointer-events: none;
             display: grid;
-            grid-template-columns: repeat(12, 1fr); /* 12 равни колони */
-            transform: rotate(-20deg); /* Наклон за диагонален ефект */
+            grid-template-columns: repeat(12, 1fr); 
+            transform: rotate(-20deg); 
             opacity: 0.25;
-            animation: moveSlow 12s ease-in-out infinite;
+            animation: moveSlow 10s ease-in-out infinite;
         }
 
-        .col-bgn { color: var(--forest-green); font-weight: 900; font-size: 2rem; text-align: center; }
-        .col-eur { color: var(--forest-green); font-weight: 900; font-size: 2.3rem; text-align: center; }
+        .col-symbol { 
+            color: var(--forest-green); 
+            font-weight: 900; 
+            font-size: 2.2rem; 
+            text-align: center;
+            padding: 20px 0;
+        }
 
         @keyframes moveSlow {
             0%, 100% { transform: rotate(-20deg) translate(0, 0); }
-            50% { transform: rotate(-20deg) translate(20px, 20px); }
+            50% { transform: rotate(-20deg) translate(15px, 15px); }
         }
 
         .glass-container {
             background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 2px solid white;
             border-radius: 40px;
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.12);
-            width: 92%;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+            width: 90%;
             max-width: 380px;
             padding: 2.5rem 2rem;
             z-index: 10;
@@ -61,11 +66,13 @@
         
         /* ВИНАГИ ЧЕРЕН БУТОН */
         .currency-btn { 
-            background-color: #111 !important; 
+            background-color: #000000 !important; 
             color: white !important; 
             border-radius: 0 20px 20px 0;
-            width: 80px;
+            width: 85px;
             font-weight: 800;
+            border: none;
+            cursor: pointer;
         }
 
         .active-res-tab { background-color: var(--forest-green) !important; color: white !important; }
@@ -86,27 +93,23 @@
         <div class="mb-5 text-left">
             <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Сума за плащане</label>
             <div class="flex h-14">
-                <input type="number" id="billValue" placeholder="0.00" 
-                    class="w-full p-4 text-2xl font-bold input-green outline-none">
-                <button type="button" onclick="changeInputCurrency()" id="currencyToggle" 
-                    class="currency-btn">BGN</button>
+                <input type="number" id="billValue" placeholder="0.00" class="w-full p-4 text-2xl font-bold input-green outline-none">
+                <button type="button" onclick="changeInputCurrency()" id="currencyToggle" class="currency-btn">BGN</button>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-6 text-left">
             <div>
                 <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Платено лв</label>
-                <input type="number" id="paidBgn" placeholder="0.00" 
-                    class="w-full p-4 rounded-2xl border-2 border-gray-100 outline-none text-center font-bold text-xl bg-white focus:border-[#228B22]">
+                <input type="number" id="paidBgn" placeholder="0.00" class="w-full p-4 rounded-2xl border-2 border-gray-100 outline-none text-center font-bold text-xl bg-white focus:border-[#228B22]">
             </div>
             <div>
                 <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Платено €</label>
-                <input type="number" id="paidEur" placeholder="0.00" 
-                    class="w-full p-4 rounded-2xl border-2 border-gray-100 outline-none text-center font-bold text-xl bg-white focus:border-[#228B22]">
+                <input type="number" id="paidEur" placeholder="0.00" class="w-full p-4 rounded-2xl border-2 border-gray-100 outline-none text-center font-bold text-xl bg-white focus:border-[#228B22]">
             </div>
         </div>
 
-        <div id="resultContainer" class="hidden bg-white/60 p-5 rounded-[30px] border border-white text-center shadow-inner mb-2">
+        <div id="resultContainer" class="hidden bg-white/70 p-5 rounded-[30px] border border-white text-center shadow-inner mb-2">
             <div class="flex justify-center gap-2 mb-3">
                 <button onclick="setResultCurrency('BGN')" id="tabBgn" class="px-5 py-1.5 rounded-xl text-xs font-bold bg-gray-200 active-res-tab">BGN</button>
                 <button onclick="setResultCurrency('EUR')" id="tabEur" class="px-5 py-1.5 rounded-xl text-xs font-bold bg-gray-200">EUR</button>
@@ -127,24 +130,16 @@
 
     <script>
         const RATE = 1.95583;
-        let currentInputMode = 'BGN';
-        let currentOutputMode = 'BGN';
+        let inputMode = 'BGN';
+        let outputMode = 'BGN';
 
-        // Генериране на ПЕРФЕКТНИ колони
         function createGrid() {
             const container = document.getElementById('bg-symbols');
-            // 120 елемента за пълно покритие
             for(let i=0; i<120; i++) {
                 const s = document.createElement('div');
+                s.className = 'col-symbol';
                 const col = i % 12;
-                // Редуваме: колона 0=лв, 1=€, 2=лв, 3=€...
-                if(col % 2 === 0) {
-                    s.className = 'col-bgn';
-                    s.innerText = 'лв';
-                } else {
-                    s.className = 'col-eur';
-                    s.innerText = '€';
-                }
+                s.innerText = col % 2 === 0 ? 'лв' : '€';
                 container.appendChild(s);
             }
         }
@@ -152,13 +147,13 @@
 
         function changeInputCurrency() {
             const btn = document.getElementById('currencyToggle');
-            currentInputMode = currentInputMode === 'BGN' ? 'EUR' : 'BGN';
-            btn.innerText = currentInputMode;
+            inputMode = inputMode === 'BGN' ? 'EUR' : 'BGN';
+            btn.innerText = inputMode;
             updateCalculations();
         }
 
         function setResultCurrency(mode) {
-            currentOutputMode = mode;
+            outputMode = mode;
             document.getElementById('tabBgn').classList.toggle('active-res-tab', mode === 'BGN');
             document.getElementById('tabEur').classList.toggle('active-res-tab', mode === 'EUR');
             updateCalculations();
@@ -168,16 +163,13 @@
             const bill = parseFloat(document.getElementById('billValue').value) || 0;
             const pBgn = parseFloat(document.getElementById('paidBgn').value) || 0;
             const pEur = parseFloat(document.getElementById('paidEur').value) || 0;
-
-            const billInBgn = (currentInputMode === 'EUR') ? bill * RATE : bill;
-            const totalPaidInBgn = pBgn + (pEur * RATE);
-            const changeInBgn = totalPaidInBgn - billInBgn;
-
+            const billBgn = inputMode === 'EUR' ? bill * RATE : bill;
+            const paidBgn = pBgn + (pEur * RATE);
+            const diff = paidBgn - billBgn;
             const resDiv = document.getElementById('resultContainer');
-            if (bill > 0 && totalPaidInBgn > 0 && changeInBgn >= -0.01) {
+            if (bill > 0 && paidBgn > 0 && diff >= -0.01) {
                 resDiv.classList.remove('hidden');
-                const val = currentOutputMode === 'BGN' ? changeInBgn.toFixed(2) + ' лв' : (changeInBgn / RATE).toFixed(2) + ' €';
-                document.getElementById('mainDisplay').innerText = val;
+                document.getElementById('mainDisplay').innerText = outputMode === 'BGN' ? diff.toFixed(2) + ' лв' : (diff / RATE).toFixed(2) + ' €';
             } else {
                 resDiv.classList.add('hidden');
             }
@@ -189,7 +181,7 @@
         window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); pwa = e; });
         document.getElementById('installBtn').addEventListener('click', () => {
             if(pwa) pwa.prompt();
-            else alert("Използвай 'Add to Home Screen' от менюто на браузъра.");
+            else alert("Отвори през браузъра и избери 'Добави на началния екран'.");
         });
     </script>
 </body>
