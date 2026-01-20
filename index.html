@@ -21,7 +21,7 @@
         #bg-grid {
             position: fixed; top: -10%; left: -10%; width: 120%; height: 120%;
             display: grid; grid-template-columns: repeat(6, 1fr);
-            z-index: -1; opacity: 0.35; transform: rotate(-10deg); pointer-events: none;
+            z-index: -1; opacity: 0.3; transform: rotate(-10deg); pointer-events: none;
         }
         .symbol {
             display: flex; align-items: center; justify-content: center;
@@ -87,7 +87,7 @@
             </div>
         </div>
 
-        <button id="installBtn" class="w-full mt-6 bg-[#228B22] text-white py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all">
+        <button id="installBtn" class="hidden w-full mt-6 bg-[#228B22] text-white py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all">
             ИНСТАЛИРАЙ
         </button>
     </main>
@@ -101,7 +101,7 @@
         const RATE = 1.95583;
         let bCurr = 'BGN', rCurr = 'BGN';
 
-        // Генерация на символи
+        // Фон
         const g = document.getElementById('bg-grid');
         for(let i=0; i<30; i++){
             const s = document.createElement('div');
@@ -122,12 +122,9 @@
             const diffL = totalInL - bInL;
 
             if(b > 0 && totalInL > 0) {
-                if(diffL < -0.001) { 
-                    document.getElementById('err').classList.remove('hidden'); 
-                    document.getElementById('res').classList.add('hidden'); 
-                } else {
-                    document.getElementById('err').classList.add('hidden'); 
-                    document.getElementById('res').classList.remove('hidden');
+                if(diffL < -0.001) { document.getElementById('err').classList.remove('hidden'); document.getElementById('res').classList.add('hidden'); }
+                else {
+                    document.getElementById('err').classList.add('hidden'); document.getElementById('res').classList.remove('hidden');
                     const diffE = diffL / RATE;
                     if(rCurr==='BGN') {
                         document.getElementById('mainR').innerText = diffL.toFixed(2) + ' лв';
@@ -142,28 +139,15 @@
 
         ['bill','pBgn','pEur'].forEach(id => document.getElementById(id).addEventListener('input', calc));
 
-        // PWA ЛОГИКА
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-        });
+        // PWA ЛОГИКА - Манифест и Сервиз Уокър
+        const canvas = document.createElement('canvas');
+        canvas.width = 192; canvas.height = 192;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#228B22'; ctx.fillRect(0,0,192,192);
+        ctx.fillStyle = 'white'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('DualPay', 96, 110);
+        const iconUrl = canvas.toDataURL();
 
-        document.getElementById('installBtn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    document.getElementById('installBtn').style.display = 'none';
-                }
-                deferredPrompt = null;
-            } else {
-                // ИНСТРУКЦИИ АКО НЕ Е НА HTTPS
-                alert("За да инсталираш:\n1. Отвори приложението през Chrome или Safari.\n2. Натисни бутона за меню (трите точки или стрелката за споделяне).\n3. Избери 'Add to Home Screen' (Добави на начален екран).");
-            }
-        });
-
-        // Манифест за PWA
         const manifest = {
             name: "DualPay Calculator",
             short_name: "DualPay",
@@ -171,7 +155,31 @@
             display: "standalone",
             background_color: "#FFD1DC",
             theme_color: "#228B22",
-            icons: [{ src: "https://cdn-icons-png.flaticon.com/512/2489/2489756.png", sizes: "512x512", type: "image/png" }]
+            icons: [{ src: iconUrl, sizes: "192x192", type: "image/png" }]
         };
         const mBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
         const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(mBlob);
+        document.head.appendChild(link);
+
+        if ('serviceWorker' in navigator) {
+            const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));`;
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob));
+        }
+
+        let defP;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); defP = e;
+            document.getElementById('installBtn').classList.remove('hidden');
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if(defP) {
+                defP.prompt();
+                const { outcome } = await defP.userChoice;
+                if (outcome === 'accepted') document.getElementById('installBtn').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
