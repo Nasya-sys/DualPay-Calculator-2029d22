@@ -1,40 +1,326 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>DualPay – Ресто</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DualPay - Калкулатор за Ресто</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --bg-pink: #FFD1DC;
+            --forest-green: #228B22;
+        }
 
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
+        body {
+            background-color: var(--bg-pink);
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
 
-<!-- Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+        h1, h2, .logo-font {
+            font-family: 'Comfortaa', cursive;
+        }
 
-<style>
-body { font-family: 'Montserrat', sans-serif; }
-h1,h2 { font-family: 'Comfortaa', cursive; }
+        /* Динамичен фон */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 150%;
+            height: 150%;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            z-index: -1;
+            opacity: 0.4;
+            transform: rotate(-15deg);
+        }
 
-.glass {
-  backdrop-filter: blur(14px);
-  background: rgba(255,235,245,0.85);
-}
+        .bg-symbol {
+            font-size: 2rem;
+            color: var(--forest-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 6s ease-in-out infinite;
+        }
 
-.float {
-  animation: float 12s infinite linear;
-}
-@keyframes float {
-  0% { transform: translate(0,0) rotate(0deg) scale(1); }
-  50% { transform: translate(40px,-40px) rotate(10deg) scale(1.1); }
-  100% { transform: translate(0,0) rotate(0deg) scale(1); }
-}
-</style>
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            50% { transform: translate(10px, -20px) rotate(10deg) scale(1.1); }
+        }
+
+        /* Стъклен ефект */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            width: 90%;
+            max-width: 400px;
+            padding: 2rem;
+        }
+
+        .input-green {
+            background-color: #228b22 !important;
+            color: white !important;
+        }
+
+        .btn-toggle {
+            background-color: #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .btn-active {
+            background-color: var(--forest-green) !important;
+            color: white !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Скриване на стрелки за числа */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
 </head>
+<body>
 
-<body class="min-h-screen bg-pink-50 overflow-hidden relative">
+    <div id="bgGrid" class="bg-grid"></div>
 
-<!-- Dynamic background -->
-<div class="absolute inset-0 -z-10 grid grid-cols-6 opacity-30 text-blue-700 font-bold text-4xl">
-  <div class="float flex items-center justify-center">€</div>
-  <div class="float flex items-center justify-center">лв</div>
-  <div class="f
+    <main class="glass-card z-10">
+        <div class="flex flex-col items-center mb-6">
+            <div class="w-16 h-16 bg-[#FFD1DC] rounded-2xl flex items-center justify-center border-2 border-[#228B22] shadow-sm mb-2">
+                <span class="logo-font text-[#228B22] font-bold text-xl">€ лв</span>
+            </div>
+            <h1 class="text-[#228B22] font-bold text-2xl">DualPay</h1>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-xs font-semibold uppercase text-gray-600 mb-1 ml-1">Сума за плащане</label>
+            <div class="flex">
+                <input type="number" id="dueAmount" placeholder="0.00" 
+                    class="w-full p-4 rounded-l-xl text-xl font-bold input-green focus:outline-none">
+                <button onclick="toggleDueCurrency()" id="dueCurrencyBtn" 
+                    class="bg-gray-800 text-white px-4 rounded-r-xl font-bold">BGN</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1 ml-1">Платено в лв</label>
+                <input type="number" id="paidBgn" placeholder="0.00" 
+                    class="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-[#228B22] outline-none text-center font-semibold">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1 ml-1">Платено в €</label>
+                <input type="number" id="paidEur" placeholder="0.00" 
+                    class="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-[#228B22] outline-none text-center font-semibold">
+            </div>
+        </div>
+
+        <div id="errorBox" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-xl text-center text-sm">
+            Недостатъчна сума!
+        </div>
+
+        <div id="resultArea" class="hidden fade-in">
+            <label class="block text-xs font-semibold uppercase text-gray-600 mb-1 ml-1">Ресто</label>
+            <div class="bg-white rounded-2xl p-4 shadow-inner text-center border border-gray-100">
+                <div class="flex justify-center mb-3">
+                    <div class="bg-gray-100 p-1 rounded-lg flex space-x-1">
+                        <button onclick="setChangeCurrency('BGN')" id="resBgn" class="px-4 py-1 rounded-md text-sm font-bold btn-active">BGN</button>
+                        <button onclick="setChangeCurrency('EUR')" id="resEur" class="px-4 py-1 rounded-md text-sm font-bold">EUR</button>
+                    </div>
+                </div>
+                <div id="mainChange" class="text-3xl font-bold text-[#228B22]">0.00 лв</div>
+                <div id="secondaryChange" class="text-sm text-gray-500 mt-1">екв. 0.00 €</div>
+            </div>
+        </div>
+
+        <button id="installBtn" class="hidden w-full mt-6 bg-[#228B22] text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition-all">
+            Инсталирай
+        </button>
+    </main>
+
+    <footer class="mt-6 text-center text-[#228B22] text-xs font-semibold opacity-80">
+        <div>Курс: 1 EUR = 1.95583 BGN</div>
+        <div class="mt-1">© Нася Цокова</div>
+    </footer>
+
+    <script>
+        const RATE = 1.95583;
+        let dueCurrency = 'BGN';
+        let changeDisplayCurrency = 'BGN';
+
+        // Инициализация на фонова мрежа
+        const grid = document.getElementById('bgGrid');
+        for (let i = 0; i < 60; i++) {
+            const div = document.createElement('div');
+            div.className = 'bg-symbol';
+            div.innerText = i % 2 === 0 ? '€' : 'лв';
+            div.style.animationDelay = `${Math.random() * 5}s`;
+            grid.appendChild(div);
+        }
+
+        // Логика за превключване на валута на плащане
+        function toggleDueCurrency() {
+            dueCurrency = dueCurrency === 'BGN' ? 'EUR' : 'BGN';
+            document.getElementById('dueCurrencyBtn').innerText = dueCurrency;
+            calculate();
+        }
+
+        // Логика за избор на валута за ресто
+        function setChangeCurrency(curr) {
+            changeDisplayCurrency = curr;
+            document.getElementById('resBgn').classList.toggle('btn-active', curr === 'BGN');
+            document.getElementById('resEur').classList.toggle('btn-active', curr === 'EUR');
+            calculate();
+        }
+
+        // Основна изчислителна логика
+        function calculate() {
+            const due = parseFloat(document.getElementById('dueAmount').value) || 0;
+            const paidBgn = parseFloat(document.getElementById('paidBgn').value) || 0;
+            const paidEur = parseFloat(document.getElementById('paidEur').value) || 0;
+
+            // Превръщане на всичко в BGN
+            const dueInBgn = dueCurrency === 'EUR' ? due * RATE : due;
+            const totalPaidInBgn = paidBgn + (paidEur * RATE);
+            const changeInBgn = totalPaidInBgn - dueInBgn;
+
+            const errorBox = document.getElementById('errorBox');
+            const resultArea = document.getElementById('resultArea');
+
+            if (dueInBgn > 0 && totalPaidInBgn > 0) {
+                if (changeInBgn < -0.01) {
+                    errorBox.classList.remove('hidden');
+                    resultArea.classList.add('hidden');
+                } else {
+                    errorBox.classList.add('hidden');
+                    resultArea.classList.remove('hidden');
+                    
+                    displayResults(changeInBgn);
+                }
+            } else {
+                resultArea.classList.add('hidden');
+                errorBox.classList.add('hidden');
+            }
+        }
+
+        function displayResults(changeInBgn) {
+            const changeInEur = changeInBgn / RATE;
+            const mainEl = document.getElementById('mainChange');
+            const secEl = document.getElementById('secondaryChange');
+
+            if (changeDisplayCurrency === 'BGN') {
+                mainEl.innerText = `${changeInBgn.toFixed(2)} лв`;
+                secEl.innerText = `екв. ${changeInEur.toFixed(2)} €`;
+            } else {
+                mainEl.innerText = `${changeInEur.toFixed(2)} €`;
+                secEl.innerText = `екв. ${changeInBgn.toFixed(2)} лв`;
+            }
+        }
+
+        // Слушатели за промяна
+        ['dueAmount', 'paidBgn', 'paidEur'].forEach(id => {
+            document.getElementById(id).addEventListener('input', calculate);
+        });
+
+        // --- PWA LOGIC ---
+
+        // Генериране на икона през Canvas
+        function generateIcon() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Фон
+            ctx.fillStyle = '#FFD1DC';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, 512, 512, 80);
+            ctx.fill();
+            
+            // Текст
+            ctx.fillStyle = '#228B22';
+            ctx.font = 'bold 120px Comfortaa, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('€ ⇄ лв', 256, 280);
+            
+            return canvas.toDataURL('image/png');
+        }
+
+        // Динамичен Web Manifest
+        const iconUrl = generateIcon();
+        const manifest = {
+            name: 'DualPay Калкулатор',
+            short_name: 'DualPay',
+            start_url: '.',
+            display: 'standalone',
+            background_color: '#FFD1DC',
+            theme_color: '#228B22',
+            icons: [{ src: iconUrl, sizes: '512x512', type: 'image/png' }]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+
+        // Service Worker Blob
+        const swCode = `
+            self.addEventListener('fetch', (event) => {
+                event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+            });
+        `;
+        const swBlob = new Blob([swCode], {type: 'application/javascript'});
+        const swURL = URL.createObjectURL(swBlob);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(swURL);
+        }
+
+        // Логика за инсталационен бутон
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.classList.add('hidden');
+                }
+                deferredPrompt = null;
+            }
+        });
+    </script>
+</body>
+</html>
