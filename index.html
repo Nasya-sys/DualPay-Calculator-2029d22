@@ -21,152 +21,202 @@
             position: relative;
         }
 
-        /* ЗАДЕН ФОН СЪС СИМВОЛИ - ВИНАГИ ВИДИМ */
-        #bg-grid {
-            position: absolute;
+        /* ЗАДЕН ФОН СЪС СИМВОЛИ - ГАРАНТИРАНО ВИДИМ */
+        #bg-symbols {
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-wrap: wrap;
-            align-content: space-around; justify-content: space-around;
-            z-index: 1; opacity: 0.3; pointer-events: none;
+            z-index: 0;
+            pointer-events: none;
+            display: block;
         }
 
-        .symbol {
-            font-size: 2.5rem; color: var(--forest-green);
-            font-weight: bold; min-width: 25%; text-align: center;
-            animation: float 8s ease-in-out infinite;
+        .floating-symbol {
+            position: absolute;
+            font-size: 2.5rem;
+            color: var(--forest-green);
+            opacity: 0.3;
+            font-weight: bold;
+            animation: floatAnim 6s ease-in-out infinite;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+        @keyframes floatAnim {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
         }
 
         .glass-container {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid white; border-radius: 40px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-            width: 90%; max-width: 380px;
-            padding: 2rem; z-index: 10; position: relative;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid white;
+            border-radius: 40px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 380px;
+            padding: 2.5rem 2rem;
+            z-index: 10;
+            position: relative;
         }
 
-        .input-green { background-color: var(--forest-green) !important; color: white !important; }
-        .active-tab { background-color: var(--forest-green) !important; color: white !important; }
+        .input-green {
+            background-color: var(--forest-green) !important;
+            color: white !important;
+        }
+
+        .currency-btn {
+            background-color: #333;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .active-res-tab {
+            background-color: var(--forest-green) !important;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
 
-    <div id="bg-grid">
-        </div>
+    <div id="bg-symbols"></div>
 
     <main class="glass-container">
-        <div class="flex flex-col items-center mb-6">
-            <div class="w-14 h-14 bg-[#228B22] rounded-2xl flex items-center justify-center shadow-lg mb-2">
-                <span class="comfortaa text-white text-xl font-bold">€ ⇄ лв</span>
+        <div class="flex flex-col items-center mb-8">
+            <div class="w-16 h-16 bg-[#228B22] rounded-2xl flex items-center justify-center shadow-lg mb-2">
+                <span class="comfortaa text-white text-2xl font-bold">€⇄лв</span>
             </div>
-            <h1 class="comfortaa text-[#228B22] text-xl font-bold uppercase tracking-tighter">DualPay Calculator</h1>
+            <h1 class="comfortaa text-[#228B22] text-xl font-bold uppercase tracking-tight">DualPay Calculator</h1>
         </div>
 
-        <div class="mb-4">
-            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Сметка за плащане</label>
+        <div class="mb-5">
+            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Сума за плащане</label>
             <div class="flex h-14">
-                <input type="number" id="bill" placeholder="0.00" 
-                    class="w-full p-4 rounded-l-2xl text-2xl font-bold input-green outline-none">
-                <button onclick="toggleBillCurr()" id="billCurrBtn" 
-                    class="bg-gray-800 text-white px-5 rounded-r-2xl font-bold text-lg">BGN</button>
+                <input type="number" id="billValue" placeholder="0.00" 
+                    class="w-full p-4 rounded-l-2xl text-2xl font-bold input-green outline-none border-none">
+                <button type="button" onclick="changeInputCurrency()" id="currencyToggle" 
+                    class="currency-btn px-6 rounded-r-2xl font-bold text-lg border-none cursor-pointer">BGN</button>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-5">
+        <div class="grid grid-cols-2 gap-4 mb-6">
             <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Платено лв</label>
-                <input type="number" id="pBgn" placeholder="0.00" 
-                    class="w-full p-3 rounded-xl border border-gray-100 outline-none text-center font-bold text-lg shadow-sm">
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Платено в лв</label>
+                <input type="number" id="paidBgn" placeholder="0.00" 
+                    class="w-full p-4 rounded-2xl border-2 border-gray-50 outline-none text-center font-bold text-xl bg-white focus:border-[#228B22] transition-colors">
             </div>
             <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Платено €</label>
-                <input type="number" id="pEur" placeholder="0.00" 
-                    class="w-full p-3 rounded-xl border border-gray-100 outline-none text-center font-bold text-lg shadow-sm">
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Платено в €</label>
+                <input type="number" id="paidEur" placeholder="0.00" 
+                    class="w-full p-4 rounded-2xl border-2 border-gray-50 outline-none text-center font-bold text-xl bg-white focus:border-[#228B22] transition-colors">
             </div>
         </div>
 
-        <div id="resBox" class="hidden bg-white/50 p-4 rounded-3xl border border-white text-center shadow-inner">
-            <div class="flex justify-center gap-1 mb-2">
-                <button onclick="setResCurr('BGN')" id="rbBgn" class="px-3 py-1 rounded-lg text-[10px] font-bold bg-gray-200 active-tab">BGN</button>
-                <button onclick="setResCurr('EUR')" id="rbEur" class="px-3 py-1 rounded-lg text-[10px] font-bold bg-gray-200">EUR</button>
+        <div id="resultContainer" class="hidden bg-white/60 p-5 rounded-[30px] border border-white text-center shadow-inner mb-2">
+            <div class="flex justify-center gap-2 mb-3">
+                <button onclick="setResultCurrency('BGN')" id="tabBgn" class="px-5 py-1.5 rounded-xl text-xs font-bold bg-gray-200 active-res-tab">BGN</button>
+                <button onclick="setResultCurrency('EUR')" id="tabEur" class="px-5 py-1.5 rounded-xl text-xs font-bold bg-gray-200">EUR</button>
             </div>
-            <div id="mainVal" class="text-3xl font-bold text-[#228B22]">0.00 лв</div>
-            <div id="subVal" class="text-[10px] text-gray-400 font-bold uppercase">Ресто</div>
+            <div id="mainDisplay" class="text-4xl font-bold text-[#228B22]">0.00 лв</div>
+            <div id="secondaryDisplay" class="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-wider">Ресто</div>
         </div>
 
-        <button id="installBtn" class="w-full mt-6 bg-[#228B22] text-white py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all">
+        <button id="installBtn" class="w-full mt-6 bg-[#228B22] text-white py-5 rounded-[25px] font-bold shadow-xl active:scale-95 transition-all text-lg">
             ИНСТАЛИРАЙ
         </button>
     </main>
 
-    <footer class="fixed bottom-4 w-full text-center z-20">
-        <p class="text-[#228B22] text-[10px] font-bold italic">Курс: 1.95583</p>
-        <p class="text-gray-400 text-[9px]">© Нася Цокова</p>
+    <footer class="fixed bottom-6 w-full text-center z-20">
+        <p class="text-[#228B22] text-[10px] font-bold tracking-widest mb-1 uppercase">Курс: 1.95583</p>
+        <p class="text-gray-400 text-[9px] font-semibold italic">© Нася Цокова</p>
     </footer>
 
     <script>
         const RATE = 1.95583;
-        let bCurr = 'BGN', rCurr = 'BGN';
+        let currentInputMode = 'BGN';
+        let currentOutputMode = 'BGN';
 
-        // Генериране на символите на фона
-        const bg = document.getElementById('bg-grid');
-        for(let i=0; i<20; i++) {
-            const s = document.createElement('div');
-            s.className = 'symbol';
-            s.innerText = i % 2 === 0 ? '€' : 'лв';
-            s.style.animationDelay = (Math.random() * 5) + 's';
-            bg.appendChild(s);
+        // 1. Генериране на задния фон
+        function createBg() {
+            const container = document.getElementById('bg-symbols');
+            const count = 15;
+            for(let i=0; i<count; i++) {
+                const s = document.createElement('div');
+                s.className = 'floating-symbol';
+                s.innerText = i % 2 === 0 ? '€' : 'лв';
+                s.style.left = Math.random() * 90 + '%';
+                s.style.top = Math.random() * 90 + '%';
+                s.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(s);
+            }
+        }
+        createBg();
+
+        // 2. Смяна на валутата на входа (BGN/EUR)
+        function changeInputCurrency() {
+            const btn = document.getElementById('currencyToggle');
+            if (currentInputMode === 'BGN') {
+                currentInputMode = 'EUR';
+                btn.innerText = 'EUR';
+                btn.style.backgroundColor = '#228B22'; // Променя цвета за визуално потвърждение
+            } else {
+                currentInputMode = 'BGN';
+                btn.innerText = 'BGN';
+                btn.style.backgroundColor = '#333';
+            }
+            updateCalculations();
         }
 
-        // ФУНКЦИЯ ЗА СМЯНА НА BGN / € НА СМЕТКАТА
-        function toggleBillCurr() {
-            bCurr = (bCurr === 'BGN') ? 'EUR' : 'BGN';
-            document.getElementById('billCurrBtn').innerText = bCurr;
-            calculate();
+        // 3. Смяна на валутата на резултата
+        function setResultCurrency(mode) {
+            currentOutputMode = mode;
+            document.getElementById('tabBgn').classList.toggle('active-res-tab', mode === 'BGN');
+            document.getElementById('tabEur').classList.toggle('active-res-tab', mode === 'EUR');
+            updateCalculations();
         }
 
-        function setResCurr(c) {
-            rCurr = c;
-            document.getElementById('rbBgn').classList.toggle('active-tab', c === 'BGN');
-            document.getElementById('rbEur').classList.toggle('active-tab', c === 'EUR');
-            calculate();
-        }
+        // 4. Основна логика за смятане
+        function updateCalculations() {
+            const bill = parseFloat(document.getElementById('billValue').value) || 0;
+            const pBgn = parseFloat(document.getElementById('paidBgn').value) || 0;
+            const pEur = parseFloat(document.getElementById('paidEur').value) || 0;
 
-        function calculate() {
-            const bill = parseFloat(document.getElementById('bill').value) || 0;
-            const pBgn = parseFloat(document.getElementById('pBgn').value) || 0;
-            const pEur = parseFloat(document.getElementById('pEur').value) || 0;
+            // Превръщаме всичко в левове за база
+            const billInBgn = (currentInputMode === 'EUR') ? bill * RATE : bill;
+            const totalPaidInBgn = pBgn + (pEur * RATE);
+            const changeInBgn = totalPaidInBgn - billInBgn;
 
-            const billInBgn = (bCurr === 'EUR') ? bill * RATE : bill;
-            const paidTotalInBgn = pBgn + (pEur * RATE);
-            const diffBgn = paidTotalInBgn - billInBgn;
+            const resDiv = document.getElementById('resultContainer');
 
-            const box = document.getElementById('resBox');
-            if(bill > 0 && paidTotalInBgn > 0 && diffBgn >= -0.01) {
-                box.classList.remove('hidden');
-                if(rCurr === 'BGN') {
-                    document.getElementById('mainVal').innerText = diffBgn.toFixed(2) + ' лв';
+            if (bill > 0 && totalPaidInBgn > 0 && changeInBgn >= -0.01) {
+                resDiv.classList.remove('hidden');
+                
+                if (currentOutputMode === 'BGN') {
+                    document.getElementById('mainDisplay').innerText = changeInBgn.toFixed(2) + ' лв';
                 } else {
-                    document.getElementById('mainVal').innerText = (diffBgn / RATE).toFixed(2) + ' €';
+                    document.getElementById('mainDisplay').innerText = (changeInBgn / RATE).toFixed(2) + ' €';
                 }
             } else {
-                box.classList.add('hidden');
+                resDiv.classList.add('hidden');
             }
         }
 
-        ['bill', 'pBgn', 'pEur'].forEach(id => document.getElementById(id).addEventListener('input', calculate));
+        // Слушатели за промяна
+        ['billValue', 'paidBgn', 'paidEur'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateCalculations);
+        });
 
-        // Инсталация
-        let promptEvt;
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); promptEvt = e; });
+        // Пълна PWA инсталация логика
+        let pwaEvent;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            pwaEvent = e;
+        });
+
         document.getElementById('installBtn').addEventListener('click', () => {
-            if(promptEvt) promptEvt.prompt();
-            else alert("Отвори в Chrome/Safari и избери 'Добави на началния екран'.");
+            if (pwaEvent) {
+                pwaEvent.prompt();
+            } else {
+                alert("За инсталиране:\n1. Отвори в Chrome/Safari\n2. Натисни Меню (3-те точки или Споделяне)\n3. Избери 'Add to Home Screen'");
+            }
         });
     </script>
 </body>
