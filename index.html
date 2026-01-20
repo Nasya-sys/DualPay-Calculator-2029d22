@@ -21,7 +21,7 @@
         #bg-grid {
             position: fixed; top: -10%; left: -10%; width: 120%; height: 120%;
             display: grid; grid-template-columns: repeat(6, 1fr);
-            z-index: -1; opacity: 0.35; transform: rotate(-10deg); pointer-events: none;
+            z-index: -1; opacity: 0.3; transform: rotate(-10deg); pointer-events: none;
         }
         .symbol {
             display: flex; align-items: center; justify-content: center;
@@ -87,20 +87,21 @@
             </div>
         </div>
 
-        <button id="installBtn" class="w-full mt-6 bg-[#228B22] text-white py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all">
+        <button id="installBtn" class="hidden w-full mt-6 bg-[#228B22] text-white py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all">
             ИНСТАЛИРАЙ
         </button>
     </main>
 
     <footer class="fixed bottom-4 w-full text-center">
-        <p class="text-[#228B22] text-[10px] font-bold uppercase">Курс: 1 EUR = 1.95583 BGN</p>
-        <p class="text-gray-400 text-[9px]">© Нася Цокова</p>
+        <p class="text-[#228B22] text-[10px] font-bold uppercase tracking-widest">Курс: 1 EUR = 1.95583 BGN</p>
+        <p class="text-gray-500 text-[9px] mt-1">© Нася Цокова</p>
     </footer>
 
     <script>
         const RATE = 1.95583;
         let bCurr = 'BGN', rCurr = 'BGN';
 
+        // Фон
         const g = document.getElementById('bg-grid');
         for(let i=0; i<30; i++){
             const s = document.createElement('div');
@@ -138,24 +139,15 @@
 
         ['bill','pBgn','pEur'].forEach(id => document.getElementById(id).addEventListener('input', calc));
 
-        // PWA ЛОГИКА
-        let defP;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); defP = e;
-            // Бутонът вече е видим по подразбиране в този код
-        });
+        // PWA ЛОГИКА - Манифест и Сервиз Уокър
+        const canvas = document.createElement('canvas');
+        canvas.width = 192; canvas.height = 192;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#228B22'; ctx.fillRect(0,0,192,192);
+        ctx.fillStyle = 'white'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('DualPay', 96, 110);
+        const iconUrl = canvas.toDataURL();
 
-        document.getElementById('installBtn').addEventListener('click', async () => {
-            if(defP) {
-                defP.prompt();
-                const { outcome } = await defP.userChoice;
-                if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
-            } else {
-                alert("За инсталация: Отвори през Chrome/Safari и избери 'Добави на началния екран' от менюто.");
-            }
-        });
-
-        // Пълна регистрация за PWA
         const manifest = {
             name: "DualPay Calculator",
             short_name: "DualPay",
@@ -163,12 +155,31 @@
             display: "standalone",
             background_color: "#FFD1DC",
             theme_color: "#228B22",
-            icons: [{ src: "https://cdn-icons-png.flaticon.com/512/2489/2489756.png", sizes: "512x512", type: "image/png" }]
+            icons: [{ src: iconUrl, sizes: "192x192", type: "image/png" }]
         };
         const mBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        const mUrl = URL.createObjectURL(mBlob);
-        const link = document.createElement('link'); link.rel = 'manifest'; link.href = mUrl;
+        const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(mBlob);
         document.head.appendChild(link);
+
+        if ('serviceWorker' in navigator) {
+            const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));`;
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob));
+        }
+
+        let defP;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); defP = e;
+            document.getElementById('installBtn').classList.remove('hidden');
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if(defP) {
+                defP.prompt();
+                const { outcome } = await defP.userChoice;
+                if (outcome === 'accepted') document.getElementById('installBtn').classList.add('hidden');
+            }
+        });
     </script>
 </body>
 </html>
