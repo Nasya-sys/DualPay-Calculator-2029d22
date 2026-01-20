@@ -4,40 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DualPay Calculator</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
         :root { --bg-pink: #FFD1DC; --forest-green: #228B22; }
-        body {
-            background-color: var(--bg-pink);
-            font-family: 'Montserrat', sans-serif;
-            margin: 0; padding: 0;
-            height: 100vh; width: 100vw;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; position: relative;
-        }
-        #bg-symbols {
-            position: fixed; top: -25%; left: -25%; width: 150%; height: 150%;
-            z-index: 0; pointer-events: none;
-            display: grid; grid-template-columns: repeat(12, 1fr); 
-            transform: rotate(-20deg); opacity: 0.25;
-            animation: moveSlow 10s ease-in-out infinite;
-        }
+        body { background-color: var(--bg-pink); font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        #bg-symbols { position: fixed; top: -25%; left: -25%; width: 150%; height: 150%; z-index: 0; pointer-events: none; display: grid; grid-template-columns: repeat(12, 1fr); transform: rotate(-20deg); opacity: 0.25; animation: moveSlow 10s ease-in-out infinite; }
         .col-symbol { color: var(--forest-green); font-weight: 900; font-size: 2.2rem; text-align: center; padding: 20px 0; }
-        @keyframes moveSlow {
-            0%, 100% { transform: rotate(-20deg) translate(0, 0); }
-            50% { transform: rotate(-20deg) translate(15px, 15px); }
-        }
-        .glass-container {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 2px solid white; border-radius: 40px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
-            width: 90%; max-width: 380px; padding: 2rem;
-            z-index: 10; position: relative;
-        }
+        @keyframes moveSlow { 0%, 100% { transform: rotate(-20deg) translate(0, 0); } 50% { transform: rotate(-20deg) translate(15px, 15px); } }
+        .glass-container { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 2px solid white; border-radius: 40px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15); width: 90%; max-width: 380px; padding: 2rem; z-index: 10; position: relative; }
         .input-green { background-color: var(--forest-green) !important; color: white !important; border-radius: 20px 0 0 20px; }
         .currency-btn { background-color: #000000 !important; color: white !important; border-radius: 0 20px 20px 0; width: 85px; font-weight: 800; border: none; cursor: pointer; }
         .active-res-tab { background-color: var(--forest-green) !important; color: white !important; }
@@ -45,9 +20,7 @@
     </style>
 </head>
 <body>
-
     <div id="bg-symbols"></div>
-
     <main class="glass-container text-center">
         <div class="flex flex-col items-center mb-6">
             <div class="w-16 h-16 bg-[#228B22] rounded-2xl flex items-center justify-center shadow-lg mb-2">
@@ -86,15 +59,8 @@
             <div id="secondaryDisplay" class="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-wider">Ресто</div>
         </div>
 
-        <button id="installBtn" class="w-full mt-4 bg-[#228B22] text-white py-5 rounded-[25px] font-bold shadow-xl active:scale-95 transition-all text-lg uppercase">
-            Инсталирай
-        </button>
+        <button id="installBtn" class="w-full mt-4 bg-[#228B22] text-white py-5 rounded-[25px] font-bold shadow-xl active:scale-95 transition-all text-lg uppercase">Инсталирай</button>
     </main>
-
-    <footer class="fixed bottom-4 w-full text-center z-20">
-        <p class="text-[#228B22] text-[10px] font-bold tracking-widest uppercase">Курс: 1.95583</p>
-        <p class="text-gray-400 text-[9px] font-semibold italic">© Нася Цокова</p>
-    </footer>
 
     <script>
         const RATE = 1.95583;
@@ -103,10 +69,8 @@
         function createGrid() {
             const container = document.getElementById('bg-symbols');
             for(let i=0; i<120; i++) {
-                const s = document.createElement('div');
-                s.className = 'col-symbol';
-                const col = i % 12;
-                s.innerText = col % 2 === 0 ? 'лв' : '€';
+                const s = document.createElement('div'); s.className = 'col-symbol';
+                const col = i % 12; s.innerText = col % 2 === 0 ? 'лв' : '€';
                 container.appendChild(s);
             }
         }
@@ -129,21 +93,26 @@
             const bill = parseFloat(document.getElementById('billValue').value) || 0;
             const pBgn = parseFloat(document.getElementById('paidBgn').value) || 0;
             const pEur = parseFloat(document.getElementById('paidEur').value) || 0;
-            const billBgn = inputMode === 'EUR' ? bill * RATE : bill;
-            const paidBgn = pBgn + (pEur * RATE);
-            const diff = paidBgn - billBgn;
+
+            // Превръщаме всичко в BGN стотинки за максимална точност
+            const billInBgn = inputMode === 'EUR' ? bill * RATE : bill;
+            const paidInBgn = pBgn + (pEur * RATE);
+            
+            // Използваме малък толеранс (0.0001), за да избегнем грешки при десетичните числа
+            const diff = paidInBgn - billInBgn;
 
             const resDiv = document.getElementById('resultContainer');
             const errDiv = document.getElementById('errorBox');
 
             if (bill > 0 && (pBgn > 0 || pEur > 0)) {
-                if (diff < -0.005) {
+                if (diff < -0.001) { // Ако не достигат пари
                     errDiv.classList.remove('hidden');
                     resDiv.classList.add('hidden');
-                } else {
+                } else { // Ако парите стигат или са точно
                     errDiv.classList.add('hidden');
                     resDiv.classList.remove('hidden');
-                    document.getElementById('mainDisplay').innerText = outputMode === 'BGN' ? diff.toFixed(2) + ' лв' : (diff / RATE).toFixed(2) + ' €';
+                    const displayVal = outputMode === 'BGN' ? diff : diff / RATE;
+                    document.getElementById('mainDisplay').innerText = displayVal.toFixed(2) + (outputMode === 'BGN' ? ' лв' : ' €');
                 }
             } else {
                 errDiv.classList.add('hidden');
@@ -157,7 +126,7 @@
         window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); pwa = e; });
         document.getElementById('installBtn').addEventListener('click', () => {
             if(pwa) pwa.prompt();
-            else alert("Използвай 'Add to Home Screen' от браузъра.");
+            else alert("Използвай 'Add to Home Screen' от менюто на браузъра.");
         });
     </script>
 </body>
